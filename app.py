@@ -24,7 +24,20 @@ def cargar_modelo(ruta="modelo-class-accidentes.pkl"):
         return pickle.load(f)
 
 
-artefactos = cargar_modelo()
+try:
+    artefactos = cargar_modelo()
+except Exception as e:   # muestra el error real (Streamlit Cloud lo oculta por defecto)
+    import sys, sklearn, xgboost, numpy
+    st.error(f"No se pudo cargar el modelo: {type(e).__name__}: {e}")
+    st.code(
+        f"Python {sys.version.split()[0]}\n"
+        f"scikit-learn=={sklearn.__version__}\n"
+        f"xgboost=={xgboost.__version__}\n"
+        f"pandas=={pd.__version__}\n"
+        f"numpy=={numpy.__version__}"
+    )
+    st.stop()
+
 modelo = artefactos["modelo"]
 labelencoder = artefactos["labelencoder"]
 variables = artefactos["variables"]      # columnas (dummies) con las que se entrenó el modelo
