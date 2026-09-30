@@ -113,6 +113,24 @@ variables = artefactos["variables"]      # columnas (dummies) con las que se ent
 info = artefactos["info"]                # variables de entrada, rangos y categorías
 metricas = info.get("metricas_cv") or {}
 
+
+# ------------------------------------------------------------------ Preparación y predicción (igual que en el notebook)
+def preparar(datos):
+    datos = datos.copy()
+    # Se fijan las categorías del entrenamiento para que el dummy de una sola fila sea correcto
+    for col, categorias in info["categoricas"].items():
+        datos[col] = pd.Categorical(datos[col], categories=categorias)
+    preparada = pd.get_dummies(datos, columns=list(info["categoricas"]), dtype=int)
+    # Se dejan exactamente las columnas del entrenamiento (la categoría de referencia queda fuera)
+    return preparada.reindex(columns=variables, fill_value=0)
+
+
+def predecir(datos):
+    preparada = preparar(datos)
+    clase = labelencoder.inverse_transform(modelo.predict(preparada))
+    proba = modelo.predict_proba(preparada)
+    return clase, proba
+
 # ------------------------------------------------------------------ Barra lateral
 with st.sidebar:
     st.markdown('<div class="side-title">Sobre el modelo</div>', unsafe_allow_html=True)
@@ -157,16 +175,10 @@ with izq:
                 entradas[col] = st.selectbox(etiqueta, info["categoricas"][col])
 
 # ------------------------------------------------------------------ Preparación + predicción
-datos = pd.DataFrame([entradas])
-# Se fijan las categorías del entrenamiento para que el dummy de una sola fila sea correcto
-for col, categorias in info["categoricas"].items():
-    datos[col] = pd.Categorical(datos[col], categories=categorias)
-preparada = pd.get_dummies(datos, columns=list(info["categoricas"]), dtype=int)
-# Se dejan exactamente las columnas del entrenamiento (la categoría de referencia queda fuera)
-preparada = preparada.reindex(columns=variables, fill_value=0)
-
-prediccion = labelencoder.inverse_transform(modelo.predict(preparada))[0]
-proba = dict(zip(labelencoder.classes_, modelo.predict_proba(preparada)[0]))
+datos = pd.DataFrame([entradas])[info["columnas_entrada"]]
+clase, probabilidades = predecir(datos)
+prediccion = clase[0]
+proba = dict(zip(labelencoder.classes_, probabilidades[0]))
 confianza = proba[prediccion]
 
 if confianza >= 0.75:
