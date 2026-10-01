@@ -44,8 +44,7 @@ Ningún modelo presenta overfitting (diferencias menores a 0.05). El mejor model
 | `modelo-class-accidentes.pkl` | Modelo entrenado (se genera al ejecutar el notebook de modelos) |
 | `accidentes_bucaramanga_completo.csv` | Datos originales |
 | `requirements.txt` | Dependencias de la aplicación (versiones iguales a las del entrenamiento) |
-| `.streamlit/config.toml` | Tema visual de la interfaz |
-| `pantallazo_despliegue.png` | Pantallazo de la interfaz funcionando |
+
 
 
 <img width="1917" height="1032" alt="image" src="https://github.com/user-attachments/assets/5d87b098-90d0-491d-ac35-7c6d3819ba38" />
