@@ -2,7 +2,10 @@
 
 **Práctica 3 - Analítica de Datos 2026 · Universidad Pontificia Bolivariana**
 
-**Grupo de trabajo: Santiago Maya Horta - Santiago Posso Acevedo - Andres Felipe Nunez Hernandez**
+**Grupo de trabajo: 
+Santiago Maya Horta 
+Santiago Posso Acevedo 
+Andres Felipe Nunez Hernandez**
 
 Modelo de clasificación que predice si un accidente de tránsito en la Comuna Centro de Bucaramanga termina **con víctimas** (heridos o muertos) o **solo con daños materiales**, y su despliegue en una interfaz gráfica con Streamlit.
 
@@ -77,8 +80,4 @@ El modelo se entrenó con `pandas==2.2.3`, `numpy==2.1.3`, `scikit-learn==1.6.1`
 * Solo usa 8 variables candidatas (3 seleccionadas); las columnas de peatones y otros tipos de vehículo se dejaron fuera.
 * Es una herramienta de apoyo para analizar patrones, no para decidir casos individuales.
 
-## Integrantes
 
-- Santiago Maya Horta ([@santymaya9](https://github.com/santymaya9))
-- (nombre del integrante 2)
-- (nombre del integrante 3)
