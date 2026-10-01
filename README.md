@@ -47,7 +47,7 @@ Ningún modelo presenta overfitting (diferencias menores a 0.05). El mejor model
 | `.streamlit/config.toml` | Tema visual de la interfaz |
 | `pantallazo_despliegue.png` | Pantallazo de la interfaz funcionando |
 
-![Pantallazo del despliegue]
+
 <img width="1917" height="1032" alt="image" src="https://github.com/user-attachments/assets/5d87b098-90d0-491d-ac35-7c6d3819ba38" />
 
 
