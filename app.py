@@ -1,3 +1,26 @@
+# -*- coding: utf-8 -*-
+"""Despliegue_Bucaramanga_Mineria_De_Datos.ipynb
+
+Interfaz gráfica en Streamlit para predecir la gravedad de un accidente de tránsito.
+"""
+
+# # Despliegue del modelo predictivo con interfaz gráfica - Accidentes de Tránsito en Bucaramanga
+#
+# Modelo: clasificación de la gravedad del accidente (Con víctimas / Solo daños), Comuna Centro, 2017.
+#
+# Este notebook es la aplicación. Para publicarla se descarga como archivo .py (Archivo > Descargar > Descargar .py) y se le cambia el nombre a `app.py`; por eso todas las celdas son código de Streamlit y no hay celdas de prueba.
+#
+# 1. Configurar la página y el estilo
+# 2. Cargar el modelo guardado en el notebook de modelos
+# 3. Preparar los datos nuevos (mismas transformaciones del entrenamiento)
+# 4. Barra lateral, portada y captura de datos
+# 5. Predicción y resultado
+# 6. Publicación en Streamlit Community Cloud y pantallazo
+
+# ## 1. Página y estilo
+#
+# Se configura la página de Streamlit (esto tiene que ser lo primero) y se define el estilo con un poco de CSS: colores, tarjetas y la portada.
+
 import pickle
 from html import escape
 
@@ -6,7 +29,6 @@ import streamlit as st
 
 st.set_page_config(page_title="Gravedad de accidentes · Bucaramanga", page_icon="🚦", layout="wide")
 
-# ------------------------------------------------------------------ Estilo
 ASFALTO, AMARILLO, ROJO, VERDE = "#1E2A32", "#F2B705", "#C8453B", "#2F8F6B"
 
 st.markdown(
@@ -69,6 +91,10 @@ div[data-baseweb="select"] > div {{ border-radius: 10px; }}
     unsafe_allow_html=True,
 )
 
+# ## 2. Cargar el modelo
+#
+# Primero los nombres que se muestran en la interfaz para cada variable (si una variable no está en la lista, se muestra con su nombre) y los colores de cada clase.
+
 # Etiquetas amigables (si una variable no está aquí, se muestra su nombre)
 ETIQUETAS = {
     "Mes": "Mes",
@@ -79,6 +105,10 @@ ETIQUETAS = {
     "Propietario": "Propietario del vehículo",
     "Automovil": "Automóviles involucrados",
     "Moto": "Motos involucradas",
+    "Peaton": "Peatones involucrados",
+    "Camioneta": "Camionetas involucradas",
+    "Buseta": "Busetas involucradas",
+    "Camion": "Camiones involucrados",
 }
 COLORES = {"Con víctimas": ROJO, "Solo daños": VERDE}
 FRASES = {
@@ -86,6 +116,7 @@ FRASES = {
     "Solo daños": "El modelo estima que este accidente solo dejaría daños materiales.",
 }
 
+# Después se lee el `.pkl` que guardó el notebook de modelos: el modelo, el LabelEncoder, las columnas con las que se entrenó y la información de las variables de entrada (rangos y categorías). `@st.cache_resource` hace que se cargue una sola vez. Si la carga falla, la app muestra el error y las versiones de las librerías, porque Streamlit Cloud oculta el mensaje por defecto.
 
 @st.cache_resource
 def cargar_modelo(ruta="modelo-class-accidentes.pkl"):
@@ -96,12 +127,11 @@ def cargar_modelo(ruta="modelo-class-accidentes.pkl"):
 try:
     artefactos = cargar_modelo()
 except Exception as e:   # muestra el error real (Streamlit Cloud lo oculta por defecto)
-    import sys, sklearn, xgboost, numpy
+    import sys, sklearn, numpy
     st.error(f"No se pudo cargar el modelo: {type(e).__name__}: {e}")
     st.code(
         f"Python {sys.version.split()[0]}\n"
         f"scikit-learn=={sklearn.__version__}\n"
-        f"xgboost=={xgboost.__version__}\n"
         f"pandas=={pd.__version__}\n"
         f"numpy=={numpy.__version__}"
     )
@@ -113,8 +143,14 @@ variables = artefactos["variables"]      # columnas (dummies) con las que se ent
 info = artefactos["info"]                # variables de entrada, rangos y categorías
 metricas = info.get("metricas_cv") or {}
 
+# ## 3. Preparación de datos nuevos
+#
+# Los datos que se escriben en la interfaz tienen que pasar por las mismas transformaciones del entrenamiento:
+#
+# * Dummies con las categorías del entrenamiento (se fijan con `pd.Categorical`; si no, con una sola fila `get_dummies` no sabe qué categorías existen).
+# * `reindex` con las columnas guardadas: deja exactamente las columnas del entrenamiento y descarta la categoría de referencia (`drop_first=True`).
+# * Si el modelo se entrenó con las numéricas normalizadas (KNN, red neuronal o SVM) se normalizan con el scaler guardado. El Random Forest no lo necesita, así que aquí no se aplica.
 
-# ------------------------------------------------------------------ Preparación y predicción (igual que en el notebook)
 def preparar(datos):
     datos = datos.copy()
     # Se fijan las categorías del entrenamiento para que el dummy de una sola fila sea correcto
@@ -122,7 +158,12 @@ def preparar(datos):
         datos[col] = pd.Categorical(datos[col], categories=categorias)
     preparada = pd.get_dummies(datos, columns=list(info["categoricas"]), dtype=int)
     # Se dejan exactamente las columnas del entrenamiento (la categoría de referencia queda fuera)
-    return preparada.reindex(columns=variables, fill_value=0)
+    preparada = preparada.reindex(columns=variables, fill_value=0)
+    # Solo si el modelo final se entrenó con las variables numéricas normalizadas (KNN, red neuronal, SVM)
+    if info.get("usa_escalado"):
+        columnas = list(info["numericas"])
+        preparada[columnas] = artefactos["scaler"].transform(preparada[columnas])
+    return preparada
 
 
 def predecir(datos):
@@ -131,7 +172,10 @@ def predecir(datos):
     proba = modelo.predict_proba(preparada)
     return clase, proba
 
-# ------------------------------------------------------------------ Barra lateral
+# ## 4. Barra lateral, portada y captura de datos
+#
+# La barra lateral muestra el algoritmo y las medidas de la validación cruzada. Los controles de la izquierda se arman con la información guardada en el modelo (variables, rangos y categorías), así que no hay que editarlos si cambian las variables.
+
 with st.sidebar:
     st.markdown('<div class="side-title">Sobre el modelo</div>', unsafe_allow_html=True)
     st.write(f"Algoritmo: **{info.get('nombre_modelo', 'modelo')}**, ajustado con GridSearch y validación cruzada de 10 pliegues.")
@@ -146,7 +190,6 @@ with st.sidebar:
     st.write("**Datos:** accidentes de la Comuna Centro de Bucaramanga en 2017, reportados por la Secretaría de Tránsito.")
     st.caption("Es una herramienta de apoyo para analizar patrones. No reemplaza el criterio de un experto.")
 
-# ------------------------------------------------------------------ Portada
 st.markdown(
     '<div class="hero"><div class="titulo">¿Qué tan grave será el accidente?</div>'
     "<p>Un modelo de clasificación entrenado con accidentes de tránsito de la Comuna Centro de Bucaramanga. "
@@ -157,7 +200,6 @@ st.markdown(
 
 izq, der = st.columns([5, 6], gap="large")
 
-# ------------------------------------------------------------------ Captura de datos
 entradas = {}
 with izq:
     with st.container(border=True):
@@ -174,7 +216,10 @@ with izq:
             else:
                 entradas[col] = st.selectbox(etiqueta, info["categoricas"][col])
 
-# ------------------------------------------------------------------ Preparación + predicción
+# ## 5. Predicción y resultado
+#
+# Con los valores de los controles se arma un dataframe de una fila, se predice la clase y la probabilidad de cada una, y se muestra el resultado con una barra de colores. Según qué tan alta es la probabilidad se indica si la señal es fuerte, moderada o débil.
+
 datos = pd.DataFrame([entradas])[info["columnas_entrada"]]
 clase, probabilidades = predecir(datos)
 prediccion = clase[0]
@@ -188,7 +233,6 @@ elif confianza >= 0.60:
 else:
     nota = "Señal débil: con estos datos el modelo casi no distingue entre las dos clases. Conviene no darle mucho peso."
 
-# ------------------------------------------------------------------ Resultado
 color = COLORES.get(prediccion, ASFALTO)
 segmentos = "".join(
     f'<div class="seg" style="width:{p * 100:.1f}%;background:{COLORES.get(c, "#7A8791")}">'
@@ -226,3 +270,12 @@ with der:
             "El modelo solo conoce los factores de la barra lateral y fue entrenado con unos 400 accidentes "
             "de una comuna y un año, por lo que no debe usarse para otras zonas o épocas."
         )
+
+# ## 6. Publicación en Streamlit Community Cloud
+#
+# La aplicación está publicada en Streamlit Community Cloud y conectada al repositorio de GitHub del proyecto:
+#
+# * Aplicación: https://despliegue-accidentes-bucaramanga-tyeafamwxu26vsiyjqegrs.streamlit.app
+# * Repositorio: https://github.com/santymaya9/Despliegue-Accidentes-Bucaramanga
+#
+# En la raíz del repositorio están `app.py` (este notebook descargado como .py), `modelo-class-accidentes.pkl`, `requirements.txt` y `.streamlit/config.toml`.
