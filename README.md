@@ -7,6 +7,7 @@
 - Santiago Maya Horta 
 - Santiago Posso Acevedo
 - Andres Felipe Nunez Hernandez
+- 
 Modelo de clasificación que predice si un accidente de tránsito en la Comuna Centro de Bucaramanga termina **con víctimas** (heridos o muertos) o **solo con daños materiales**, y su despliegue en una interfaz gráfica con Streamlit.
  
 **Aplicación desplegada:** https://despliegue-accidentes-bucaramanga-tyeafamwxu26vsiyjqegrs.streamlit.app
