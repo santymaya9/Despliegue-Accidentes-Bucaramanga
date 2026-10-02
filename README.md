@@ -52,6 +52,7 @@ Ningún modelo presenta overfitting (diferencias menores a 0.05). El mejor model
 | `modelo-class-accidentes.pkl` | Modelo entrenado (se genera al ejecutar el notebook de modelos) |
 | `accidentes_bucaramanga_completo.csv` | Datos originales |
 | `requirements.txt` | Dependencias de la aplicación (versiones iguales a las del entrenamiento) |
+| `Proyecto_accidentes_bucaramanga.xlsx` | Resumen del proyecto con el formato del archivo compartido en Teams |
 
 
 
@@ -78,6 +79,12 @@ pip install pandas numpy matplotlib seaborn scipy scikit-learn xgboost openpyxl 
 El modelo se entrenó con `pandas==2.2.3`, `numpy==2.1.3`, `scikit-learn==1.6.1` y `xgboost==3.4.1`; usar esas versiones para cargar el `.pkl` sin problemas.
 
 ## Limitaciones
+
+* Son 406 accidentes de una sola comuna y un solo año; el modelo no debe usarse para otras zonas o épocas.
+* Solo usa 8 variables candidatas (3 seleccionadas); las columnas de peatones y otros tipos de vehículo se dejaron fuera.
+* Es una herramienta de apoyo para analizar patrones, no para decidir casos individuales.
+
+
 
 * Son 406 accidentes de una sola comuna y un solo año; el modelo no debe usarse para otras zonas o épocas.
 * Solo usa 8 variables candidatas (3 seleccionadas); las columnas de peatones y otros tipos de vehículo se dejaron fuera.
