@@ -56,7 +56,9 @@ Ningún modelo presenta overfitting (diferencias menores a 0.05). El modelo fina
 
 
 
-![Pantallazo del despliegue](pantallazo_despliegue.png)
+
+<img width="1917" height="1027" alt="image" src="https://github.com/user-attachments/assets/02e7b70b-c43d-4dd0-9e63-6e9518ecefe5" />
+
 
 
 ## Cómo ejecutarlo
