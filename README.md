@@ -54,7 +54,8 @@ Ningún modelo presenta overfitting (diferencias menores a 0.05). El modelo fina
  
  
  
-<img width="1917" height="1032" alt="image" src="https://github.com/user-attachments/assets/5d87b098-90d0-491d-ac35-7c6d3819ba38" />
+<img width="1917" height="1032" alt="image" src="![Uploading image.png…]()
+" />
  
 ## Cómo ejecutarlo
  
